@@ -1,5 +1,3 @@
-"use strict";
-
-import IPADic from './IPADic';
+const IPADic = require('./IPADic');
 
 module.exports = IPADic;

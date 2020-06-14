@@ -1,20 +1,4 @@
 # Dependency directory
 node_modules
 
-# IntelliJ
-.idea
-*.iml
-
-# Gulp
-gulp.1
-
-# npm
-npm-debug.log
-
-# Others
-tmp
-.DS_Store
-
-# Distribution
-lib
-.publish
+dict/

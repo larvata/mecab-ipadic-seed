@@ -1,10 +1,8 @@
-"use strict";
-
 const assert = require('assert');
-const IPADic = require('../lib/index');
+const IPADic = require('../src/index');
 
 describe('index.js', () => {
-    it('load module', () => {
-        assert(IPADic != null);
-    });
+  it('load module', () => {
+    assert(IPADic != null);
+  });
 });
