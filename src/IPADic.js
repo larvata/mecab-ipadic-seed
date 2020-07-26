@@ -1,7 +1,9 @@
 const fs = require('fs');
-const path = require('path');
 const DictionaryReader = require('./DictionaryReader');
 const SequentialDictionariesReader = require('./SequentialDictionariesReader');
+const prepareDictionaries = require('./prepare-dictionaries');
+
+const DEFAULT_MECAB_IPADIC_DIRECTORY = 'dict';
 
 /**
  * IPADic
@@ -11,7 +13,7 @@ module.exports = class IPADic {
    * @constructor
    */
   constructor(dictBase) {
-    this.dictBase = dictBase || path.join(__dirname, '../dict');
+    this.dictBase = dictBase || DEFAULT_MECAB_IPADIC_DIRECTORY;
     this.costMatrixDefinition = new DictionaryReader(this.dictBase, 'matrix.def');
     this.characterDefinition = new DictionaryReader(this.dictBase, 'char.def');
     this.unknownWordDefinition = new DictionaryReader(this.dictBase, 'unk.def');
@@ -58,5 +60,12 @@ module.exports = class IPADic {
    */
   readTokenInfo(callback) {
     return this.tokenInfoDictionaries.read(callback);
+  }
+
+  static prepareDictionaries(options) {
+    return prepareDictionaries({
+      dictPath: DEFAULT_MECAB_IPADIC_DIRECTORY,
+      ...options,
+    });
   }
 };
