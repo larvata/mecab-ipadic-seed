@@ -12,17 +12,17 @@ module.exports = class IPADic {
   /**
    * @constructor
    */
-  constructor(dictBase) {
+  constructor(dictBase, seedFilter) {
     this.dictBase = dictBase || DEFAULT_MECAB_IPADIC_DIRECTORY;
     this.costMatrixDefinition = new DictionaryReader(this.dictBase, 'matrix.def');
     this.characterDefinition = new DictionaryReader(this.dictBase, 'char.def');
     this.unknownWordDefinition = new DictionaryReader(this.dictBase, 'unk.def');
 
-    const readers = fs.readdirSync(this.dictBase).filter((filename) => {
-      return /\.csv$/.test(filename);
-    }).map((filename) => {
-      return new DictionaryReader(this.dictBase, filename);
-    });
+    const allFiles = fs.readdirSync(this.dictBase);
+    const filter = seedFilter || ((filename) => /\.csv$/.test(filename));
+
+    const readers = filter(allFiles)
+      .map((filename) => new DictionaryReader(this.dictBase, filename));
     this.tokenInfoDictionaries = new SequentialDictionariesReader(readers);
   }
 
