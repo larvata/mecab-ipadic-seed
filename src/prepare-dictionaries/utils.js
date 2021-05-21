@@ -8,13 +8,32 @@ const Diff = require('diff');
 const { buffer } = require('request-compose');
 const { Iconv } = require('iconv');
 
-const DEFAULT_MECAB_IPADIC_URL = 'http://downloads.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/mecab-ipadic-2.7.0-20070801.tar.gz';
-const DEFAULT_MECAB_IPADIC_NEOLOGD_URL = 'https://github.com/neologd/mecab-ipadic-neologd/archive/master.zip';
+const CACHE_DIRECTORY = '.cache';
+const UNPACK_DIRECTORY = '.cache/unpack';
+
+const DICT = [{
+  key: 'ipadic',
+  url: 'http://downloads.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/mecab-ipadic-2.7.0-20070801.tar.gz',
+  cache: 'mecab-ipadic.cache.zip',
+}, {
+  key: 'ipadic-neologd',
+  url: 'https://github.com/neologd/mecab-ipadic-neologd/archive/master.zip',
+  cache: 'mecab-ipadic-neologd.cache.zip',
+}, {
+  key: 'unidic-cwj',
+  url: 'https://unidic.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0.zip',
+  cache: 'unidic-cwj.cache.zip',
+}, {
+  key: 'unidic-csj',
+  url: 'https://unidic.ninjal.ac.jp/unidic_archive/csj/3.1.0/unidic-csj-3.1.0.zip',
+  cache: 'unidic-csj.cache.zip',
+}];
+
 const iconv = new Iconv('EUC-JP', 'UTF-8');
 
 let agent = null;
 if (process.env.http_proxy) {
-  agent = new ProxyAgent(process.env.http_proxy);
+  agent = new ProxyAgent(process.env.http_proxy || process.env.HTTP_PROXY);
 }
 
 function downloadAndExtract(options) {
@@ -48,30 +67,17 @@ function downloadAndExtract(options) {
     .then((body) => decompress(body, { strip: 1 }));
 }
 
-function downloadMecabIpadic(options = {}) {
-  const url = process.env.MECAB_IPADIC_URL
-    || DEFAULT_MECAB_IPADIC_URL;
-
+function downloadDict(options = {}) {
+  const { dict } = options;
+  const dictOption = DICT.find((d) => d.key === dict);
+  if (!dictOption) {
+    throw new Error('Invalid dict key:', dict);
+  }
   const downloadOptions = {
-    url,
+    url: dictOption.url,
     agent,
     redirect: { max: 3 },
-    cachefile: 'mecab-ipadic.cache.zip',
-    ...options,
-  };
-
-  return downloadAndExtract(downloadOptions);
-}
-
-function downloadMecabIpadicNeologd(options = {}) {
-  const url = process.env.MECAB_IPADIC_NEOLOGD_URL
-    || DEFAULT_MECAB_IPADIC_NEOLOGD_URL;
-
-  const downloadOptions = {
-    url,
-    agent,
-    redirect: { max: 3 },
-    cachefile: 'mecab-ipadic-neologd.cache.zip',
+    cachefile: dictOption.cache,
     ...options,
   };
 
@@ -129,16 +135,25 @@ function patchFile(file, savePath) {
 
 function createDirectorySync(dpath) {
   if (!fs.existsSync(dpath)) {
-    fs.mkdirSync(dpath);
+    fs.mkdirSync(dpath, { recursive: true });
+  }
+}
+
+function cleanDirectorySync(dpath) {
+  if (fs.existsSync(dpath)) {
+    fs.rmdirSync(dpath, { recursive: true });
   }
 }
 
 module.exports = {
-  downloadMecabIpadic,
-  downloadMecabIpadicNeologd,
+  DICT,
+  CACHE_DIRECTORY,
+  UNPACK_DIRECTORY,
+  downloadDict,
   eucjp2utf8,
   unxz,
   writeToFile,
   patchFile,
   createDirectorySync,
+  cleanDirectorySync,
 };

@@ -1,9 +1,15 @@
 const fs = require('fs');
+const path = require('path');
 const DictionaryReader = require('./DictionaryReader');
+const BinaryDictionaryReader = require('./BinaryDictionaryReader');
 const SequentialDictionariesReader = require('./SequentialDictionariesReader');
 const prepareDictionaries = require('./prepare-dictionaries');
 
 const DEFAULT_MECAB_IPADIC_DIRECTORY = 'dict';
+
+function existsSync(basePath, fileName) {
+  return fs.existsSync(path.join(basePath, fileName));
+}
 
 /**
  * IPADic
@@ -14,12 +20,19 @@ module.exports = class IPADic {
    */
   constructor(dictBase, seedFilter) {
     this.dictBase = dictBase || DEFAULT_MECAB_IPADIC_DIRECTORY;
-    this.costMatrixDefinition = new DictionaryReader(this.dictBase, 'matrix.def');
+
+    this.costMatrixDefinition = null;
+    if (existsSync(this.dictBase, 'matrix.bin')) {
+      this.costMatrixDefinition = new BinaryDictionaryReader(this.dictBase, 'matrix.bin');
+    } else if (existsSync(this.dictBase, 'matrix.def')) {
+      this.costMatrixDefinition = new DictionaryReader(this.dictBase, 'matrix.def');
+    }
+
     this.characterDefinition = new DictionaryReader(this.dictBase, 'char.def');
     this.unknownWordDefinition = new DictionaryReader(this.dictBase, 'unk.def');
 
     const allFiles = fs.readdirSync(this.dictBase);
-    const filter = seedFilter || ((filename) => /\.csv$/.test(filename));
+    const filter = seedFilter || ((files) => files.filter((filename) => /\.csv$/.test(filename)));
 
     const readers = filter(allFiles)
       .map((filename) => new DictionaryReader(this.dictBase, filename));
