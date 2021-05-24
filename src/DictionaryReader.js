@@ -25,7 +25,7 @@ module.exports = class DictionaryReader {
         input: fs.createReadStream(this.filePath),
       });
       rl.on('line', (line) => {
-        callback(line);
+        callback(line, true);
       });
       rl.on('close', () => {
         resolve();

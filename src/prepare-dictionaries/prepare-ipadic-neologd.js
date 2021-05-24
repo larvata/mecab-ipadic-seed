@@ -9,7 +9,7 @@ const {
 
 const prepareIPADIC = require('./prepare-ipadic');
 
-module.exports = async (options) => {
+module.exports = async (options = {}) => {
   const { patchOnly } = options;
 
   await prepareIPADIC();
